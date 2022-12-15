@@ -21,6 +21,8 @@ namespace Wpf.TaskSchedulers.Study
     /// </summary>
     public partial class MainWindow : Window
     {
+        //  We now use a different scheduler
+        private readonly TaskScheduler _taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
         public MainWindow()
         {
             InitializeComponent();
@@ -37,19 +39,17 @@ namespace Wpf.TaskSchedulers.Study
             //  This raises an exception as WPF and other
             //  UI based frameworks have thread affinity requirements
 
-            //  UI elements can only be accessed on the main thread
-            //  This continuation runs in a pooled thread and
-            //  tries to set the property of a UI element
+            //  As we now have a custom task scheduler
+            //  (one that works with current synchronization context)
+            //  We pass this as the second argument to the continuation
 
-            //  It causes: System.InvalidOperationException:
-            //  'The calling thread cannot access this object
-            //  because a different thread owns it.'
+            label.Content = "Getting a random number...";
 
             ClickStartAsync()
                 .ContinueWith(t =>
                 {
                     label.Content = t.Result;
-                });
+                }, _taskScheduler);
         }
 
         private async Task<string> ClickStartAsync()
